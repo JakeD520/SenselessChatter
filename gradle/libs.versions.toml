@@ -1,0 +1,35 @@
+[versions]
+kotlin           = "2.2.0"
+agp              = "8.6.0"
+compose-bom      = "2024.09.02"
+activity-compose = "1.9.2"
+supabase         = "3.2.2"
+ktor             = "3.2.2"
+serialization    = "1.7.3"
+material = "1.12.0"   # keep or bump as you like
+
+[plugins]
+android-application = { id = "com.android.application",             version.ref = "agp" }
+android-library     = { id = "com.android.library",                 version.ref = "agp" }
+kotlin-android      = { id = "org.jetbrains.kotlin.android",        version.ref = "kotlin" }
+kotlin-compose      = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-jvm          = { id = "org.jetbrains.kotlin.jvm",            version.ref = "kotlin" }
+kotlin-serialization= { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+[libraries]
+material                    = { group = "com.google.android.material", name = "material", version.ref = "material" }
+compose-bom                 = { group = "androidx.compose",           name = "compose-bom",      version.ref = "compose-bom" }
+activity-compose            = { group = "androidx.activity",          name = "activity-compose", version.ref = "activity-compose" }
+compose-ui                  = { group = "androidx.compose.ui",        name = "ui" }
+compose-material3           = { group = "androidx.compose.material3", name = "material3" }
+compose-ui-tooling-preview  = { group = "androidx.compose.ui",        name = "ui-tooling-preview" }
+compose-ui-tooling          = { group = "androidx.compose.ui",        name = "ui-tooling" }
+
+supabase-bom                = { group = "io.github.jan-tennert.supabase", name = "bom",           version.ref = "supabase" }
+supabase-core               = { group = "io.github.jan-tennert.supabase", name = "supabase-kt",   version.ref = "supabase" }
+supabase-auth               = { group = "io.github.jan-tennert.supabase", name = "auth-kt",     version.ref = "supabase" }
+supabase-postgrest          = { group = "io.github.jan-tennert.supabase", name = "postgrest-kt",  version.ref = "supabase" }
+supabase-realtime           = { group = "io.github.jan-tennert.supabase", name = "realtime-kt",   version.ref = "supabase" }
+
+ktor-client-android         = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+kotlinx-serialization-json  = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
