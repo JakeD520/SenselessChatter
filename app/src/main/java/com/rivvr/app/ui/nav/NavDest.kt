@@ -4,9 +4,10 @@ sealed interface NavDest {
     val route: String
     val label: String
 
-    data object Flows : NavDest { override val route = "flows"; override val label = "Flows" }
-    data object Feed : NavDest  { override val route = "feed";  override val label = "Feed" }
-    data object Profile : NavDest { override val route = "profile"; override val label = "Profile" }
+    data object PrivateRoom : NavDest { override val route = "private_room"; override val label = "Private Room" }
+    data object MainRoom : NavDest { override val route = "main_room"; override val label = "Main Room" }
+    data object PrivateMessage : NavDest { override val route = "private_message"; override val label = "Private Message" }
+    data object Dashboard : NavDest { override val route = "dashboard"; override val label = "Dashboard" }
 }
 
 

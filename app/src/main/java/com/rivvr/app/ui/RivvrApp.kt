@@ -3,7 +3,8 @@ package com.rivvr.app.ui
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,9 +17,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rivvr.app.ui.nav.NavDest
-import com.rivvr.app.ui.screens.FeedScreen
-import com.rivvr.app.ui.screens.FlowsScreen
-import com.rivvr.app.ui.screens.ProfileScreen
+import com.rivvr.app.ui.screens.PrivateRoomScreen
+import com.rivvr.app.ui.screens.MainRoomScreen
+import com.rivvr.app.ui.screens.PrivateMessageScreen
+import com.rivvr.app.ui.screens.DashboardScreen
 import com.rivvr.app.ui.screens.AuthScreen
 import com.rivvr.app.di.ServiceGraph
 import kotlinx.coroutines.launch
@@ -94,25 +96,32 @@ fun RivvrApp() {
             ) { innerPadding ->
                 NavHost(
                     navController = navController,
-                    startDestination = NavDest.Flows.route,
+                    startDestination = NavDest.MainRoom.route,
                     modifier = Modifier.padding(innerPadding)
                 ) {
-                    composable(NavDest.Flows.route) {
-                        FlowsScreen(
+                    composable(NavDest.PrivateRoom.route) {
+                        PrivateRoomScreen()
+                    }
+                    composable(NavDest.MainRoom.route) {
+                        MainRoomScreen(
                             onSignOut = { 
                                 scope.launch {
-                                    // TODO: Temporarily disable until HttpTimeout issue is resolved
-                                    // ServiceGraph.auth.signOut()
-                                    isAuthenticated = false
+                                    try {
+                                        ServiceGraph.auth.signOut()
+                                        isAuthenticated = false
+                                    } catch (e: Exception) {
+                                        // Handle sign out error, but still set to unauthenticated
+                                        isAuthenticated = false
+                                    }
                                 }
                             }
                         )
                     }
-                    composable(NavDest.Feed.route) {
-                        FeedScreen()
+                    composable(NavDest.PrivateMessage.route) {
+                        PrivateMessageScreen()
                     }
-                    composable(NavDest.Profile.route) {
-                        ProfileScreen(
+                    composable(NavDest.Dashboard.route) {
+                        DashboardScreen(
                             onSignOut = { 
                                 scope.launch {
                                     try {
@@ -140,18 +149,23 @@ private data class BottomNavItem(
 
 private val bottomNavItems = listOf(
     BottomNavItem(
-        route = NavDest.Flows.route,
-        label = "Flows",
+        route = NavDest.PrivateRoom.route,
+        label = "Private Room",
+        icon = Icons.Default.Lock
+    ),
+    BottomNavItem(
+        route = NavDest.MainRoom.route,
+        label = "Main Room", 
         icon = Icons.Default.Home
     ),
     BottomNavItem(
-        route = NavDest.Feed.route,
-        label = "Feed", 
-        icon = Icons.Default.Settings
+        route = NavDest.PrivateMessage.route,
+        label = "Private Chat",
+        icon = Icons.Default.Email
     ),
     BottomNavItem(
-        route = NavDest.Profile.route,
-        label = "Profile",
-        icon = Icons.Default.Person
+        route = NavDest.Dashboard.route,
+        label = "Dashboard",
+        icon = Icons.Default.Settings
     )
 )
