@@ -38,10 +38,10 @@ fun FlowsScreen(onSignOut: () -> Unit = {}) {
                     val supabaseFlowRooms = ServiceGraph.flows.myRooms(currentProfile.id, limit = 50)
                     flowRooms = supabaseFlowRooms.map { room ->
                         FlowRoomData(
-                            id = room.id,
-                            user_id = room.user_id,
-                            name = room.name,
-                            created_at = room.created_at
+                            id = room.flow.id.toString(),
+                            user_id = room.flow.createdByUserId,
+                            name = room.flow.name,
+                            created_at = room.flow.createdAtEpochMs.toString()
                         )
                     }
                 } else {
@@ -104,10 +104,10 @@ fun FlowsScreen(onSignOut: () -> Unit = {}) {
                                     val supabaseFlowRooms = ServiceGraph.flows.myRooms(currentProfile.id, limit = 50)
                                     flowRooms = supabaseFlowRooms.map { room ->
                                         FlowRoomData(
-                                            id = room.id,
-                                            user_id = room.user_id,
-                                            name = room.name,
-                                            created_at = room.created_at
+                                            id = room.flow.id.toString(),
+                                            user_id = room.flow.createdByUserId,
+                                            name = room.flow.name,
+                                            created_at = room.flow.createdAtEpochMs.toString()
                                         )
                                     }
                                 }

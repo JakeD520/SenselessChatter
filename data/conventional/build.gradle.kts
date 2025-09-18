@@ -17,7 +17,6 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
-    implementation(libs.supabase.functions)
     
     // Ktor client for Android
     implementation(libs.ktor.client.android)
@@ -25,6 +24,6 @@ dependencies {
     // JSON serialization
     implementation(libs.kotlinx.serialization.json)
 
-    // Coroutines if your interfaces are suspend-based
+    // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
 }

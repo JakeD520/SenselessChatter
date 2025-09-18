@@ -7,4 +7,5 @@ interface AuthService {
     suspend fun signUp(email: String, password: String): Profile
     suspend fun signOut()
     suspend fun currentProfile(): Profile?
+    suspend fun updateProfile(displayName: String? = null): Profile?
 }

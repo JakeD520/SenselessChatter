@@ -25,4 +25,9 @@ class StubAuthService : AuthService {
 
 
     override suspend fun signOut() { profile = null }
+
+    override suspend fun updateProfile(displayName: String?): Profile? {
+        profile = profile?.copy(displayName = displayName)
+        return profile
+    }
 }

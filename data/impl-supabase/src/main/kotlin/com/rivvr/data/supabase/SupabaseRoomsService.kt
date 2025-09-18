@@ -4,17 +4,20 @@ import com.rivvr.data.api.RoomsService
 import com.rivvr.data.api.Room
 import com.rivvr.data.api.RoomNavigationResult
 import com.rivvr.data.api.Message
+import com.rivvr.data.api.RoomOccupant
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.from
 import io.github.jan.supabase.postgrest.rpc
+import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.postgrest.query.Order
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.functions.functions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 @Serializable
 data class RoomRpcResponse(
@@ -31,6 +34,17 @@ data class RoomRpcResponse(
     val success: Boolean? = null
 )
 
+// STANDARD TABLE ROW REPRESENTATION - matches database schema exactly  
+@Serializable
+data class MessageRow(
+    val id: Long,
+    val room_id: String, // Database stores as string
+    val user_id: String,
+    val body: String,
+    val created_at: String,
+    val user_alias: String? = null // From JOIN with profiles or direct column
+)
+
 @Serializable
 data class RippleRow(
     val id: Long,
@@ -40,30 +54,116 @@ data class RippleRow(
     val created_at: String
 )
 
+// LIGHTWEIGHT CLIENT - Backend-First Architecture
+// Client is thin presentation layer, server does all the work
+
 class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
     
-    // Enhanced quirky room names for dynamic rotation - keeping these for fallback
-    private val quirkySuffixes = listOf(
-        "Mysterious", "Whimsical", "Enchanted", "Peculiar", "Delightful",
-        "Bewildering", "Marvelous", "Curious", "Fantastic", "Amusing",
-        "Extraordinary", "Captivating", "Intriguing"
+    // Ultra-simple request/response data classes
+    @Serializable
+    data class SendMessageRequest(
+        val room_id: String,
+        val text: String  // Client sends raw text, server processes everything
     )
     
-    private val quirkyPrefixes = listOf(
-        "Crystal", "Velvet", "Golden", "Silver", "Cosmic", "Ancient",
-        "Secret", "Hidden", "Floating", "Shimmering", "Glowing"
+    @Serializable 
+    data class ServerResponse(
+        val success: Boolean,
+        val error: String? = null,
+        val message: ServerMessage? = null,
+        val messages: List<ServerMessage>? = null,
+        val room: ServerRoom? = null
     )
     
-    private val quirkyNouns = listOf(
-        "Chamber", "Sanctuary", "Haven", "Alcove", "Quarters", "Retreat",
-        "Parlor", "Study", "Lounge", "Gallery", "Observatory", "Atrium"
+    @Serializable
+    data class EffectInstruction(
+        val type: String,
+        val particle: String? = null,
+        val particles: List<String> = emptyList(),
+        val count: Int = 0,
+        val duration: Int = 0,
+        val animation: String? = null
     )
-
-    private fun generateQuirkyRoomName(): String {
-        val prefix = quirkyPrefixes.random()
-        val suffix = quirkySuffixes.random()
-        val noun = quirkyNouns.random()
-        return "$prefix $suffix $noun"
+    
+    @Serializable
+    data class ServerMessage(
+        val id: Long,
+        val room_id: Long,
+        val user_id: String,
+        val user_alias: String,
+        val body: String,
+        val formatted_message: String? = null, // New field from server
+        val original_text: String? = null,
+        val effects: List<String> = emptyList(),
+        val effect_instructions: List<EffectInstruction> = emptyList(),
+        val created_at: String,
+        val has_effects: Boolean = false
+    )
+    
+    @Serializable
+    data class ServerRoom(
+        val id: Long,
+        val name: String,
+        val seq: Int? = null,
+        val user_count: Int = 0,
+        val soft_cap: Int = 8,
+        val hard_cap: Int = 12
+    )
+    
+    // CLEAN MESSAGE SENDING: Direct PostgREST insert
+    override suspend fun sendMessage(roomId: Long, text: String): Result<Unit> {
+        return try {
+            val currentUser = client.auth.currentUserOrNull()
+            val userId = currentUser?.id ?: "anonymous"
+            
+            client.postgrest.from("messages").insert(
+                mapOf(
+                    "room_id" to roomId.toString(),
+                    "user_id" to userId,
+                    "body" to text
+                )
+            )
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    // PRODUCTION MESSAGING: Clean direct database operations
+    override suspend fun getRoomMessages(roomId: Long): Flow<List<Message>> = flow {
+        while (true) {
+            try {
+                // Direct PostgREST query - no custom RPC functions
+                val messages = client.postgrest.from("messages")
+                    .select() {
+                        filter {
+                            eq("room_id", roomId)
+                        }
+                        order("created_at", Order.ASCENDING)
+                        limit(50) // Last 50 messages
+                    }
+                    .decodeList<MessageRow>()
+                    .map { row ->
+                        Message(
+                            id = row.id,
+                            roomId = row.room_id.toLong(),
+                            senderUserId = row.user_id,
+                            senderAlias = row.user_alias ?: "Anonymous",
+                            text = row.body,
+                            createdAt = row.created_at
+                        )
+                    }
+                
+                emit(messages)
+                delay(2000L) // Simple 2-second polling for now - can be optimized later
+                
+            } catch (e: Exception) {
+                println("❌ Error loading messages: ${e.message}")
+                emit(emptyList())
+                delay(5000L)
+            }
+        }
     }
     
     override suspend fun getNextRoom(fromSeq: Int): RoomNavigationResult {
@@ -96,7 +196,7 @@ class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
             val room = Room(
                 id = rpcResult.room_id ?: 0,
                 seq = rpcResult.room_seq ?: 0,
-                name = rpcResult.room_name ?: generateQuirkyRoomName(),
+                name = rpcResult.room_name ?: "Unnamed Room",
                 userCount = rpcResult.user_count ?: 0,
                 softCap = rpcResult.soft_cap ?: 8,
                 hardCap = rpcResult.hard_cap ?: 12,
@@ -109,11 +209,12 @@ class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
                 message = null
             )
         } catch (e: Exception) {
-            // Fallback to enhanced simulation if RPC fails
+            println("❌ Error in getNextRoom RPC: ${e.message}")
+            // Return error instead of fake fallback room
             RoomNavigationResult(
-                room = createRealStyleRoom(fromSeq + 1),
-                isEndOfFlow = false,
-                message = "RPC Error: ${e.message}"
+                room = null,
+                isEndOfFlow = true,
+                message = "Database error: ${e.message}"
             )
         }
     }
@@ -136,7 +237,7 @@ class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
                 val room = Room(
                     id = roomId,
                     seq = rpcResult.room_seq ?: 0,
-                    name = rpcResult.room_name ?: generateQuirkyRoomName(),
+                    name = rpcResult.room_name ?: "Unnamed Room",
                     userCount = rpcResult.user_count ?: 1,
                     softCap = rpcResult.soft_cap ?: 8,
                     hardCap = rpcResult.hard_cap ?: 12,
@@ -184,7 +285,7 @@ class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
             Room(
                 id = rpcResult.room_id ?: 0,
                 seq = rpcResult.room_seq ?: 0,
-                name = rpcResult.room_name ?: generateQuirkyRoomName(),
+                name = rpcResult.room_name ?: "Unnamed Room",
                 userCount = rpcResult.user_count ?: 0,
                 softCap = rpcResult.soft_cap ?: 8,
                 hardCap = rpcResult.hard_cap ?: 12
@@ -194,45 +295,24 @@ class SupabaseRoomsService(private val client: SupabaseClient) : RoomsService {
         }
     }
     
-    override suspend fun getRoomMessages(roomId: Long): Flow<List<Message>> = flow {
-        // Enhanced simulation with dynamic messages
-        val sampleMessages = listOf(
-            Message(1, roomId, "user1", "Welcome to this ${quirkySuffixes.random().lowercase()} space!", "2024-01-01T10:00:00Z"),
-            Message(2, roomId, "user2", "The atmosphere here is quite ${quirkySuffixes.random().lowercase()}!", "2024-01-01T10:01:00Z"),
-            Message(3, roomId, "user3", "I love the ${quirkyNouns.random().lowercase()} vibe of this room", "2024-01-01T10:02:00Z")
-        )
-        
-        while (true) {
-            emit(sampleMessages.shuffled().take((1..3).random()))
-            delay(5000) // Update every 5 seconds
-        }
-    }
-    
-    override suspend fun sendMessage(roomId: Long, text: String): Result<Unit> {
-        return try {
-            client.from("ripples").insert(
-                mapOf(
-                    "room_id" to roomId,
-                    "text" to text
-                )
-            )
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+    // Real presence methods - no mock data
+    override suspend fun getRoomOccupants(roomId: Long): List<RoomOccupant> {
+        // With pure Realtime architecture, we don't query database for presence
+        // This would come from Realtime WebSocket channels in a real implementation
+        return emptyList()
     }
 
-    private fun createRealStyleRoom(id: Int): Room {
-        return Room(
-            id = id.toLong(),
-            seq = id,
-            name = generateQuirkyRoomName(),
-            userCount = (1..8).random(),
-            softCap = 8,
-            hardCap = 12,
-            isEndOfFlow = false,
-            isNewRoom = true,
-            message = null
-        )
+    override fun getRealTimeOccupants(roomId: Long): Flow<List<RoomOccupant>> = flow {
+        // This should be a real Realtime subscription to presence channels
+        // For now, emit empty until Realtime presence is properly implemented
+        emit(emptyList())
+    }
+
+    override suspend fun joinRoomWithPresence(roomId: Long): Result<Room> {
+        return joinRoom(roomId)
+    }
+
+    override suspend fun leaveRoomWithPresence(roomId: Long): Result<Unit> {
+        return leaveRoom(roomId)
     }
 }

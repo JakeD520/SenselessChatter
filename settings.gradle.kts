@@ -22,5 +22,6 @@ include(
     ":core:models",
     ":data:api",
     ":data:impl-supabase",
-    ":data:impl-stub"
+    ":data:impl-stub",
+    ":data:conventional"
 )

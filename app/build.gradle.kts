@@ -66,6 +66,7 @@ dependencies {
     implementation(project(":core:models"))
     implementation(project(":data:api"))
     implementation(project(":data:impl-supabase"))
+    implementation(project(":data:conventional"))
 
     // Supabase dependencies needed for direct client usage
     implementation(platform(libs.supabase.bom))
@@ -73,6 +74,7 @@ dependencies {
     implementation(libs.supabase.auth)
     implementation(libs.supabase.postgrest)
     implementation(libs.supabase.realtime)
+    implementation(libs.supabase.functions)
     
     // Core Ktor client dependencies for 3.2.2
     implementation("io.ktor:ktor-client-okhttp:${libs.versions.ktor.get()}")

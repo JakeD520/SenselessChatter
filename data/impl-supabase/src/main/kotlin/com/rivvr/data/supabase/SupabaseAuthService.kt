@@ -33,8 +33,35 @@ class SupabaseAuthService(
         client.auth.signOut()
     }
 
-    override suspend fun currentProfile(): Profile? {
+    override suspend fun updateProfile(displayName: String?): Profile? {
         val userId = client.auth.currentUserOrNull()?.id ?: return null
+
+        // Update the profile in the database
+        client.from("profiles").update({
+            if (displayName != null) {
+                set("display_name", displayName)
+            }
+        }) {
+            filter {
+                eq("id", userId)
+            }
+        }
+
+        // Return the updated profile
+        return currentProfile()
+    }
+
+    override suspend fun currentProfile(): Profile? {
+        println("🔐 SupabaseAuthService: Getting current profile...")
+        val user = client.auth.currentUserOrNull()
+        
+        if (user == null) {
+            println("❌ SupabaseAuthService: No current user in auth session")
+            return null
+        }
+        
+        println("✅ SupabaseAuthService: Found auth session for user ID: ${user.id}")
+        val userId = user.id
 
         val rows = client.from("profiles").select {
             filter {
@@ -42,7 +69,15 @@ class SupabaseAuthService(
             }
         }.decodeList<ProfileRow>()
 
-        return rows.firstOrNull()?.toModel()
+        val profile = rows.firstOrNull()?.toModel()
+        
+        if (profile != null) {
+            println("✅ SupabaseAuthService: Successfully retrieved profile from database")
+        } else {
+            println("❌ SupabaseAuthService: User in auth session but no profile in database")
+        }
+        
+        return profile
     }
 
     @Serializable

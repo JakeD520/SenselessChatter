@@ -1,4 +1,4 @@
-package com.rivvr.core.models
+package com.rivvr.app.models
 
 import kotlinx.serialization.Serializable
 
