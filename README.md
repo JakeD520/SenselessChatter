@@ -33,8 +33,8 @@ The chat should feel more like the wild days of AOL chatrooms and Visual Basic p
 
    * `<earthquake>`: screen shake + vibration + all text tumbles and vanishes.
    * `<matrix>`: green rain overlay, text turns neon.
-   * `<dance>`: psychedelic swirl, text exits “stage.”
-   * `<groovy>`: wavy outlines, rainbow cycling.
+   * `<dance>`: disoball effect, text exits “stage.”
+   * `<groovy>`: Psychedelic swirl, wavy outlines, rainbow cycling.
 
 2. **Media/Audio Surprises**
 
