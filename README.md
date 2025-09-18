@@ -1,222 +1,153 @@
-# Rivvr - Real-time Flow Communication App
+🌀 Chaotic Macro System & Frivolous Flow – Concept Report
+📋 Overview
 
-A modern Android application for real-time messaging and conversation flows, built with Jetpack Compose and Supabase.
+Rivvr is not a productivity tool. It is not Discord, Slack, or Twitter. It’s a chaotic, ephemeral chatroom designed for play. The macro system is the core of this chaos: hidden commands, disruptive effects, playful pranks, and ephemeral expressions.
 
-## 🚀 Features
+The chat should feel more like the wild days of AOL chatrooms and Visual Basic prank apps than a “streamlined, polished” messenger. Messages are lightweight, expendable, and often intentionally destroyed. Nothing is sacred.
 
-- **Real-time Authentication** - Secure email/password authentication via Supabase
-- **Flow Rooms** - Create and participate in conversation flows
-- **Live Messaging** - Send and receive ripples (messages) in real-time
-- **Material Design 3** - Modern, accessible UI with dark/light theme support
-- **Offline-Ready** - Graceful error handling and retry mechanisms
+🎯 Core Philosophy
 
-## 🏗️ Architecture
+Frivolous First: Conversations are not “content” to preserve. They are play.
 
-Rivvr follows Clean Architecture principles with clear separation of concerns:
+Shared Chaos: Effects ripple across the room, creating moments everyone reacts to.
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Presentation  │    │     Domain      │    │      Data       │
-│                 │    │                 │    │                 │
-│ • Compose UI    │◄──►│ • Use Cases     │◄──►│ • Repositories  │
-│ • ViewModels    │    │ • Models        │    │ • Supabase API  │
-│ • Navigation    │    │ • Interfaces    │    │ • Local Cache   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+Discovery & Surprise: Hidden macros (<matrix>, <earthquake>, <rickroll>, <mute>) appear unexpectedly and spread by word of mouth.
 
-### Modules
+Ephemerality: Messages vanish quickly. Rooms are living flows, not archives.
 
-- **`:app`** - Android application and UI layer
-- **`:core:models`** - Shared domain models (Profile, Flow, Ripple)
-- **`:data:api`** - Repository interfaces and contracts
-- **`:data:impl-supabase`** - Supabase implementation of data layer
-- **`:data:impl-stub`** - Local stub implementation for testing
+No Control Fetish: Resist the developer instinct to repopulate, restore, or polish. Losing messages, chaos, and disruption are part of the design.
 
-## 🛠️ Tech Stack
+🔧 Technical Concept
+Message Ephemerality
 
-- **Language**: Kotlin 2.2.0
-- **UI Framework**: Jetpack Compose with Material 3
-- **Backend**: Supabase (PostgreSQL, Auth, Realtime)
-- **HTTP Client**: Ktor 3.2.2 with OkHttp engine
-- **Build System**: Gradle 8.6.0 with Version Catalogs
-- **Minimum SDK**: 24 (Android 7.0)
-- **Target SDK**: 35 (Android 15)
+Hard rules: 50 messages OR 30 minutes → auto-expire.
 
-## 📋 Prerequisites
+No history fetch or archive. When it’s gone, it’s gone.
 
-- **Android Studio**: Hedgehog (2023.1.1) or newer
-- **Java**: JDK 17 or newer
-- **Android SDK**: API level 35
-- **Supabase Project**: With database and authentication configured
+If <earthquake> drops the whole room’s text offscreen? That’s fine. It’s fun.
 
-## 🚀 Quick Start
+No repopulation/backfill: The destruction is part of the joke. The flow continues fresh.
 
-### 1. Clone and Setup
+Macro Types
 
-```bash
-git clone <your-repo-url>
-cd Rivvr
-```
+Visual Disruptions
 
-### 2. Configure Supabase
+<earthquake>: screen shake + vibration + all text tumbles and vanishes.
 
-Create your Supabase project and update `gradle.properties`:
+<matrix>: green rain overlay, text turns neon.
 
-```properties
-RIVVR_SUPABASE_URL=https://your-project.supabase.co
-RIVVR_SUPABASE_ANON=your-anon-key-here
-```
+<dance>: psychedelic swirl, text exits “stage.”
 
-### 3. Database Setup
+<groovy>: wavy outlines, rainbow cycling.
 
-Run this SQL in your Supabase SQL editor to create the required tables:
+Media/Audio Surprises
 
-```sql
--- Create profiles table
-CREATE TABLE public.profiles (
-    id UUID REFERENCES auth.users(id) PRIMARY KEY,
-    email TEXT NOT NULL,
-    display_name TEXT,
-    avatar_url TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+<rickroll>: pop-up video/audio clip, ephemeral overlay.
 
--- Create flows table  
-CREATE TABLE public.flows (
-    id BIGSERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    created_by UUID REFERENCES public.profiles(id) NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+<drumfill>, <applause>: soundboard-style stingers.
 
--- Create ripples table
-CREATE TABLE public.ripples (
-    id BIGSERIAL PRIMARY KEY,
-    flow_id BIGINT REFERENCES public.flows(id) ON DELETE CASCADE,
-    sender_user_id UUID REFERENCES public.profiles(id) NOT NULL,
-    text TEXT,
-    media_url TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+Clips disappear like any other effect.
 
--- Enable Row Level Security
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.flows ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.ripples ENABLE ROW LEVEL SECURITY;
+Playful Moderation
 
--- Create RLS policies (see MASTER_RECORD.md for complete policies)
-```
+<mute bob>: Alice mutes Bob locally; room sees “Alice muted Bob.”
 
-### 4. Build and Run
+<unmute bob>: Alice unmutes Bob; room sees “Alice unmuted Bob.”
 
-```bash
-# Build the app
-./gradlew assembleDebug
+Social signals, sometimes sincere, often ironic.
 
-# Install on connected device/emulator
-./gradlew installDebug
-```
+Classic Easter Eggs
 
-## 📱 Usage
+<do a barrel roll>: spins the chat window.
 
-1. **Sign Up**: Create a new account with email and password
-2. **Explore Flows**: View your conversation flows on the main screen
-3. **Join Conversations**: Tap on a flow to see ripples (messages)
-4. **Send Ripples**: Participate in real-time conversations
-5. **Profile**: Manage your account and sign out
+<the game>: “You lost the game” message for everyone.
 
-## 🔧 Development
+<konami>: unlocks hidden triggers.
 
-### Build Commands
+Local Enforcement
 
-```bash
-# Clean build
-./gradlew clean
+Mutes are local only: each client filters what they want to see.
 
-# Run tests
-./gradlew test
+Destructive effects don’t touch the server; they only wipe/transform the local view.
 
-# Build all variants
-./gradlew build
+This ensures chaos without locking the whole room.
 
-# Install debug version
-./gradlew installDebug
-```
+🎨 User Experience
+Flow of Chaos
 
-### Code Style
+Alice drops <earthquake>.
 
-This project follows [Kotlin Coding Conventions](https://kotlinlang.org/docs/coding-conventions.html) and uses:
+Everyone’s screen shakes, text falls away.
 
-- **ktlint** for code formatting
-- **detekt** for static analysis
-- **Compose guidelines** for UI development
+The conversation is gone. That’s the point.
 
-## 🗄️ Database Schema
+Room starts fresh, laughing.
 
-### Profiles
-- Links to Supabase Auth users
-- Stores display name and avatar
-- Auto-created on signup
+Bob spams <rickroll>.
 
-### Flows
-- Conversation rooms/channels
-- Owned by creating user
-- Supports metadata and settings
+Some find it funny, others mute him.
 
-### Ripples
-- Individual messages in flows
-- Supports text and media
-- Real-time synchronization
+Muters see: “Dude1234 muted Bob.”
 
-## 🔐 Security
+Others keep vibing with Bob’s antics.
 
-- **Row Level Security (RLS)** enabled on all tables
-- **Authentication** handled by Supabase Auth
-- **Authorization** through database policies
-- **API Keys** stored securely in build configuration
+Alison uses <matrix>.
 
-## 🚨 Troubleshooting
+For 20s, the room looks like The Matrix.
 
-### Common Issues
+Everyone riffs in green text.
 
-**Build Fails with HttpTimeout Error**
-- Ensure Ktor version is 3.2.2 to match Supabase 3.2.2
+JKFowling_1 posts something unpopular.
 
-**Network Permission Error**
-- Verify INTERNET permission is in AndroidManifest.xml
+Multiple people jokingly <mute jkfowling_1>.
 
-**Email Verification Issues**
-- Check Supabase Auth URL configuration
-- Consider disabling email confirmation for development
+System lines flood: “Alison muted JKFowling_1.”
 
-**Database Connection Issues**
-- Verify Supabase URL and keys in gradle.properties
-- Check RLS policies allow your operations
+A minute later: “Alison unmuted JKFowling_1.”
 
-## 📖 Documentation
+It’s performative muting — part of the comedy.
 
-- **MASTER_RECORD.md** - Current project status and technical details
-- **Architecture Decision Records** - In `/docs/adr/` (when created)
-- **API Documentation** - Generated from code comments
+Tone
 
-## 🤝 Contributing
+Chaotic, not orderly.
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Playful, not productive.
 
-## 📄 License
+Disposable, not archival.
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Collective: effects belong to everyone in the moment.
 
-## 🙏 Acknowledgments
+🛡️ Development Guardrails
 
-- **Supabase** for the excellent backend-as-a-service platform
-- **JetBrains** for Kotlin and excellent developer tools
-- **Google** for Jetpack Compose and Android development platform
+Do NOT backfill: destruction (earthquakes, wipes) should not be reversed.
 
----
+Do NOT over-moderate: muting is client-side and ephemeral, not global bans.
 
-**Status**: ✅ Production Ready | **Last Updated**: September 4, 2025
+Do NOT polish away the fun: the chaos is the feature, not the bug.
+
+Do NOT track clout: no profiles, no likes, no status badges.
+
+📊 Success Criteria
+
+Users discover macros organically (“how did you do that?!”).
+
+Chaos is fun, not frustrating: people laugh at disruptions, not rage-quit.
+
+Muting/unmuting used playfully as much as seriously.
+
+Sessions feel more like a party game than a chat log.
+
+🚀 Next Steps
+
+Add mute_notice, earthquake, matrix, media_player to effect types.
+
+Wire macros into Supabase realtime messaging pipeline.
+
+Render system notices and chaotic effects in the same chat stream.
+
+QA to ensure effects vanish with TTL; nothing persists beyond limits.
+
+Seed early rooms with a handful of hidden triggers and let discovery spread.
+
+Summary:
+Rivvr’s macro system turns chat into a sandbox of chaos. Messages are fragile, rooms are ephemeral, and macros can wipe, warp, or ridicule the flow. Muting, earthquakes, rickrolls — they’re all part of the play. The product’s strength lies in not restoring order when things get messy. That’s the magic.
