@@ -75,7 +75,7 @@ The chat should feel more like the wild days of AOL chatrooms and Visual Basic p
 2. Bob spams `<rickroll>`.
 
    * Some find it funny, others mute him.
-   * Muters see: “Dude1234 muted Bob.”
+   * All chat see: “Dude1234 muted/unmuted Bob.”
    * Others keep vibing with Bob’s antics.
 
 3. Alison uses `<matrix>`.
@@ -86,8 +86,8 @@ The chat should feel more like the wild days of AOL chatrooms and Visual Basic p
 4. JKFowling\_1 posts something unpopular.
 
    * Multiple people jokingly `<mute jkfowling_1>`.
-   * System lines flood: “Alison muted JKFowling\_1.”
-   * A minute later: “Alison unmuted JKFowling\_1.”
+   * System lines flood: “Alison muted JKFowling_1.”
+   * A minute later: “Alison unmuted JKFowling_1.”
    * It’s performative muting — part of the comedy.
 
 ### Tone
@@ -114,16 +114,6 @@ The chat should feel more like the wild days of AOL chatrooms and Visual Basic p
 * Chaos is **fun, not frustrating**: people laugh at disruptions, not rage-quit.
 * Muting/unmuting used playfully as much as seriously.
 * Sessions feel more like a **party game** than a chat log.
-
----
-
-## 🚀 Next Steps
-
-1. Add `mute_notice`, `earthquake`, `matrix`, `media_player` to effect types.
-2. Wire macros into Supabase realtime messaging pipeline.
-3. Render system notices and chaotic effects in the same chat stream.
-4. QA to ensure effects vanish with TTL; nothing persists beyond limits.
-5. Seed early rooms with a handful of hidden triggers and let discovery spread.
 
 ---
 
